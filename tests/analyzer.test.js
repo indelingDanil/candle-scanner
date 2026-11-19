@@ -82,8 +82,8 @@ check(has(17, 'shootingStar'), 'падающая звезда на 17');
 check(has(19, 'engulfBear'), 'медвежье поглощение на 19');
 check(res.patterns.some((p) => p.i === 26 && p.key.startsWith('doji')), 'доджи на 26');
 console.log('Все паттерны:', found.join(', '));
-console.log('Тренд:', res.trend.label, '| уровней:', res.levels.length, '| трендовых линий:', res.trendlines.length);
-console.log('Предупреждения:', det.warnings);
+console.log('Тренд:', res.trend.dir, '| уровней:', res.levels.length, '| трендовых линий:', res.trendlines.length);
+console.log('Предупреждения:', det.warnings.map((w) => w.code));
 
 // --- Маска: поверх графика нарисована "наша" разметка (линия уровня и подпись) ---
 const mask = new Uint8Array(W * H);
@@ -121,7 +121,7 @@ console.log('     (без маски на той же картинке: свеч
   const d2 = A.detectCandles(img2, colors.bull, colors.bear, { tol: 60 });
   check(d2.candles.length === bars.length, `с плашкой сделки: свечей ${d2.candles.length} из ${bars.length}`);
   const sameColors = d2.candles.every((c, i) => bars[i] && (c.hidden || (c.type === 'bull') === (bars[i].c >= bars[i].o)));
-  console.log('     скрытых свечей:', d2.candles.filter((c) => c.hidden).length, '|', d2.warnings.join('; '));
+  console.log('     скрытых свечей:', d2.candles.filter((c) => c.hidden).length, '|', d2.warnings.map((w) => w.code + (w.n ? ':' + w.n : '')).join('; '));
   const r2 = A.analyze(d2.candles, { lastForming: true });
   check(r2.patterns.every((p) => !d2.candles[p.i].hidden), 'скрытые свечи не дают паттернов');
   check(sameColors, 'с плашкой сделки: цвета всех свечей верные');
@@ -129,7 +129,7 @@ console.log('     (без маски на той же картинке: свеч
   check(!wide, 'плашка не склеилась со свечами');
 }
 
-const s = res.stats.map((x) => `${x.name} ${x.win}/${x.n}`).join(', ');
+const s = res.stats.map((x) => `${x.key} ${x.win}/${x.n}`).join(', ');
 console.log('Статистика:', s);
 check(res.patterns.every((p) => p.strength >= 1 && p.outcome), 'у всех паттернов есть сила и результат');
 

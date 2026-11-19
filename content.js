@@ -4,6 +4,12 @@
   if (window.__candleScanner) { window.__candleScanner.toggle(); return; }
 
   const A = window.CandleAnalyzer;
+  const I = window.CandleI18n;
+  let lang = I.detect();
+  let T = I.dict[lang];
+  const pn = (key) => T.patterns[key][0];   // название паттерна
+  const ps = (key) => T.patterns[key][1];   // короткая подпись на графике
+  const ph = (key) => T.patterns[key][2];   // пояснение
   const STORE_KEY = 'cs:' + location.host;
   const AUTO_MS = 1000;
   const RECENT = 20; // сколько последних свечей подписывать на графике
@@ -60,10 +66,10 @@
     if (pat) {
       pUp = pat.dir > 0 ? pat.p : 1 - pat.p;
       ci = pat.dir > 0 ? pat.ci : [1 - pat.ci[1], 1 - pat.ci[0]];
-      src = pat.name; n = pat.n;
+      src = pn(pat.key); n = pat.n;
     } else if (ss.run && ss.run.n >= MIN_N) {
       pUp = ss.run.pUp; ci = ss.run.ci; n = ss.run.n;
-      src = `после ${ss.run.lenLabel} ${ss.run.col > 0 ? 'зелёных' : 'красных'} подряд`;
+      src = T.runSrc(ss.run.lenLabel, ss.run.col > 0);
     } else return { dir: 0, pUp: 0.5, ci: [0, 1], src: null, n: 0, edge: false };
     const be = ss.breakeven;
     const dir = ci[0] > be ? 1 : ci[1] < 1 - be ? -1 : 0;
@@ -86,6 +92,7 @@
       font: 12px system-ui, sans-serif; border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,.5); border: 1px solid #2a2f38; }
     .hd { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; cursor: move; border-bottom: 1px solid #2a2f38; font-weight: 600; }
     .hd button { background: none; border: 0; color: #9aa3ad; font-size: 16px; cursor: pointer; padding: 0 4px; }
+    .hd button.lang { font-size: 11px; font-weight: 700; border: 1px solid #333a45; border-radius: 4px; padding: 1px 5px; margin-right: 6px; }
     .bd { padding: 10px; display: grid; gap: 8px; max-height: calc(100vh - 90px); overflow: auto; }
     .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
     .btn { flex: 1; padding: 6px 8px; border-radius: 6px; border: 1px solid #333a45; background: #1f242c; color: #e6e8eb; cursor: pointer; font: inherit; }
@@ -112,42 +119,42 @@
   <div class="layer"><div class="hint"></div></div>
   <div class="sel"></div>
   <div class="panel">
-    <div class="hd"><span>Candle Scanner</span><button data-a="close" title="Закрыть">×</button></div>
+    <div class="hd"><span>Candle Scanner</span><span><button data-a="lang" class="lang"></button><button data-a="close" data-tt="close">×</button></span></div>
     <div class="bd">
       <div class="row">
-        <button class="btn" data-a="region">Область</button>
-        <button class="btn primary" data-a="scan">Сканировать</button>
-        <button class="btn" data-a="auto">Авто</button>
+        <button class="btn" data-a="region" data-t="region"></button>
+        <button class="btn primary" data-a="scan" data-t="scan"></button>
+        <button class="btn" data-a="auto"></button>
       </div>
       <div class="row">
-        <span class="sw" data-sw="bull"></span><button class="btn" data-a="pick-bull">Пипетка ▲</button>
-        <span class="sw" data-sw="bear"></span><button class="btn" data-a="pick-bear">Пипетка ▼</button>
+        <span class="sw" data-sw="bull"></span><button class="btn" data-a="pick-bull" data-t="pickBull"></button>
+        <span class="sw" data-sw="bear"></span><button class="btn" data-a="pick-bear" data-t="pickBear"></button>
       </div>
       <div class="row">
-        <button class="btn" data-a="autocolor">Авто-цвета</button>
-        <span>Допуск</span><input type="range" min="15" max="140" data-k="tol"><span data-v="tol"></span>
+        <button class="btn" data-a="autocolor" data-t="autoColors"></button>
+        <span data-t="tolerance"></span><input type="range" min="15" max="140" data-k="tol"><span data-v="tol"></span>
       </div>
       <div class="row">
-        <label><input type="checkbox" data-c="patterns">Паттерны</label>
-        <label><input type="checkbox" data-c="levels">Уровни</label>
-        <label><input type="checkbox" data-c="trend">Тренд</label>
-        <label><input type="checkbox" data-c="debug">Отладка</label>
+        <label><input type="checkbox" data-c="patterns"><span data-t="patterns"></span></label>
+        <label><input type="checkbox" data-c="levels"><span data-t="levels"></span></label>
+        <label><input type="checkbox" data-c="trend"><span data-t="trend"></span></label>
+        <label><input type="checkbox" data-c="debug"><span data-t="debug"></span></label>
       </div>
       <div class="row">
-        <label title="Доджи, марубозу, харами, пинцет вне уровней"><input type="checkbox" data-c="weak">Слабые</label>
-        <label title="Подписывать паттерны по всему графику, а не только на последних свечах"><input type="checkbox" data-c="history">Вся история</label>
+        <label data-tt="weakTip"><input type="checkbox" data-c="weak"><span data-t="weak"></span></label>
+        <label data-tt="historyTip"><input type="checkbox" data-c="history"><span data-t="history"></span></label>
       </div>
-      <label><input type="checkbox" data-c="lastForming">Последняя свеча ещё формируется</label>
+      <label><input type="checkbox" data-c="lastForming"><span data-t="lastForming"></span></label>
       <div class="row">
-        <span>Выплата</span><input type="number" min="1" max="200" data-k="payout" style="width:52px;background:#1f242c;color:#e6e8eb;border:1px solid #333a45;border-radius:4px;padding:3px"><span>%</span>
-        <button class="btn" data-a="reset">Новая сессия</button>
+        <span data-t="payout"></span><input type="number" min="1" max="200" data-k="payout" style="width:52px;background:#1f242c;color:#e6e8eb;border:1px solid #333a45;border-radius:4px;padding:3px"><span>%</span>
+        <button class="btn" data-a="reset" data-t="newSession"></button>
       </div>
-      <div><div class="sec">Следующая свеча — по истории этой сессии</div><div class="now" data-out="session">—</div></div>
-      <div class="st" data-out="status">Выберите область графика (без шкал цены и времени).</div>
-      <div><div class="sec">Сейчас (последняя закрытая свеча)</div><div class="now" data-out="now">—</div></div>
-      <div><div class="sec">Недавние паттерны · ✓ следующая свеча пошла в сторону паттерна</div><div class="list" data-out="list"></div></div>
-      <div><div class="sec">Статистика на видимой истории</div><div class="list stats" data-out="stats"></div></div>
-      <div class="disc">Инструмент визуальной разметки графика. Не является торговыми сигналами или инвестиционной рекомендацией.</div>
+      <div><div class="sec" data-t="secSession"></div><div class="now" data-out="session">—</div></div>
+      <div class="st" data-out="status"></div>
+      <div><div class="sec" data-t="secNow"></div><div class="now" data-out="now">—</div></div>
+      <div><div class="sec" data-t="secRecent"></div><div class="list" data-out="list"></div></div>
+      <div><div class="sec" data-t="secStats"></div><div class="list stats" data-out="stats"></div></div>
+      <div class="disc" data-t="disclaimer"></div>
     </div>
   </div>`;
   document.documentElement.appendChild(host);
@@ -184,7 +191,7 @@
     } finally {
       if (hide) host.style.visibility = 'visible';
     }
-    if (!resp || !resp.ok) throw new Error(resp ? resp.error : 'нет ответа от расширения');
+    if (!resp || !resp.ok) throw new Error(resp ? resp.error : T.noResponse);
     const img = new Image();
     await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = resp.dataUrl; });
     const scale = img.naturalWidth / window.innerWidth;
@@ -227,7 +234,7 @@
   // ---------- Сканирование ----------
   async function scan() {
     if (state.busy) return;
-    if (!state.region) { setStatus('Сначала выберите область графика.'); return; }
+    if (!state.region) { setStatus(T.selectRegionFirst); return; }
     state.busy = true;
     try {
       const { img, scale } = await captureScreen(false);
@@ -237,7 +244,7 @@
         state.bull = state.bull || c.bull;
         state.bear = state.bear || c.bear;
         save(); syncUI();
-        if (!state.bull || !state.bear) { setStatus('Не удалось определить цвета свечей — укажите их пипеткой.'); return; }
+        if (!state.bull || !state.bear) { setStatus(T.colorsFail); return; }
       }
       const t0 = performance.now();
       const det = A.detectCandles(data, state.bull, state.bear, { tol: state.tol, mask });
@@ -247,7 +254,7 @@
       render();
       report();
     } catch (e) {
-      setStatus('Ошибка: ' + (e.message || e));
+      setStatus(T.error(e.message || e));
       if (state.auto) toggleAuto(false);
     } finally {
       state.busy = false;
@@ -328,7 +335,7 @@
         const k = (y2 - y1) / Math.max(1, x2 - x1);
         ctx.strokeStyle = col; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 + ext, y2 + k * ext); ctx.stroke();
-        label((t.kind === 'up' ? 'Тренд ↑' : 'Тренд ↓') + (t.broken ? ' (пробой?)' : ''), x2 + ext, y2 + k * ext + (t.kind === 'up' ? 14 : -6), col, 'right');
+        label((t.kind === 'up' ? T.trendUp : T.trendDown) + (t.broken ? T.breakout : ''), x2 + ext, y2 + k * ext + (t.kind === 'up' ? 14 : -6), col, 'right');
       });
     }
 
@@ -340,7 +347,7 @@
         const n = stack.get(p.i) || 0; stack.set(p.i, n + 1);
         const col = p.dir > 0 ? '#4cd38a' : p.dir < 0 ? '#ff6b6b' : '#c9d1d9';
         const mark = p.outcome === 'win' ? ' ✓' : p.outcome === 'loss' ? ' ✗' : p.outcome === 'pending' ? ' ?' : '';
-        const text = (p.strength >= 3 ? '★ ' : '') + p.short + mark;
+        const text = (p.strength >= 3 ? '★ ' : '') + ps(p.key) + mark;
         const x = X(c.xc);
         // подсветка свечей паттерна
         const i0 = p.i - p.len + 1;
@@ -360,10 +367,10 @@
     if (v || (session.stats && session.stats.n < WARMUP)) {
       ctx.font = '700 13px system-ui, sans-serif';
       let text, bg;
-      if (!v) { text = `Прогрев ${session.stats.n}/${WARMUP}`; bg = 'rgba(120,100,20,.9)'; }
-      else if (v.edge) { text = `${v.dir > 0 ? '▲ Чаще росла' : '▼ Чаще падала'}: ${Math.round((v.dir > 0 ? v.pUp : 1 - v.pUp) * 100)}% из ${v.n} · ${v.src}`; bg = v.dir > 0 ? 'rgba(30,140,80,.92)' : 'rgba(190,50,50,.92)'; }
-      else if (!v.src) { text = 'Мало похожих случаев · пропуск'; bg = 'rgba(60,66,78,.92)'; }
-      else { text = `Как монетка: рост ${Math.round(v.pUp * 100)}% из ${v.n} · пропуск`; bg = 'rgba(60,66,78,.92)'; }
+      if (!v) { text = T.warmup(session.stats.n, WARMUP); bg = 'rgba(120,100,20,.9)'; }
+      else if (v.edge) { text = T.badgeEdge(v.dir > 0, Math.round((v.dir > 0 ? v.pUp : 1 - v.pUp) * 100), v.n, v.src); bg = v.dir > 0 ? 'rgba(30,140,80,.92)' : 'rgba(190,50,50,.92)'; }
+      else if (!v.src) { text = T.badgeFew; bg = 'rgba(60,66,78,.92)'; }
+      else { text = T.badgeCoin(Math.round(v.pUp * 100), v.n); bg = 'rgba(60,66,78,.92)'; }
       const tw = ctx.measureText(text).width + 16;
       const bx = r.x + r.w - tw - 8, by = r.y + 8;
       ctx.fillStyle = bg; ctx.fillRect(bx, by, tw, 24);
@@ -386,9 +393,9 @@
     const { det, res, ms } = state.result;
     const n = det.candles.length;
     const tcls = res.trend.dir > 0 ? 'up' : res.trend.dir < 0 ? 'dn' : 'nt';
-    let s = `Свечей: <b>${n}</b> · ширина ~${det.medianWidth}px · ${ms} мс<br>` +
-      `Тренд (${res.trend.bars || 0} св.): <span class="${tcls}">${res.trend.label}</span> · уровней: ${res.levels.length} · линий: ${res.trendlines.length}`;
-    det.warnings.forEach((w) => { s += `<br><span class="warn">⚠ ${w}</span>`; });
+    let s = T.status(n, det.medianWidth, ms) + '<br>' +
+      T.trendLine(res.trend.bars || 0, tcls, (res.trend.bars || 0) < 5 ? T.notEnough : T.trendLabel(res.trend.dir), res.levels.length, res.trendlines.length);
+    det.warnings.forEach((w) => { const f = T.warnings[w.code]; s += `<br><span class="warn">⚠ ${typeof f === 'function' ? f(w.n) : f}</span>`; });
     setStatus(s);
 
     $('[data-out=session]').innerHTML = sessionHTML();
@@ -397,57 +404,58 @@
     const arrow =(p) => p.dir > 0 ? '▲' : p.dir < 0 ? '▼' : '●';
     const dcls = (p) => p.dir > 0 ? 'up' : p.dir < 0 ? 'dn' : 'nt';
     const stars = (p) => '★'.repeat(p.strength) + '☆'.repeat(3 - p.strength);
-    const res3 = (p) => p.outcome === 'win' ? '<span class="ok">✓</span>' : p.outcome === 'loss' ? '<span class="bad">✗</span>' : p.outcome === 'pending' ? '<span class="wait">ждёт</span>' : '';
+    const res3 = (p) => p.outcome === 'win' ? '<span class="ok">✓</span>' : p.outcome === 'loss' ? '<span class="bad">✗</span>' : p.outcome === 'pending' ? `<span class="wait">${T.waiting}</span>` : '';
 
     // Сейчас: паттерны, завершившиеся на последней закрытой свече
     const now = vis.filter((p) => p.i === res.lastIdx);
     $('[data-out=now]').innerHTML = now.length
-      ? now.map((p) => `<div><b class="${dcls(p)}">${arrow(p)} ${p.name}</b> <span title="Сила: базовая значимость + бонус у уровня">${stars(p)}</span>` +
-          `${p.atLevel ? ` · у уровня ${p.atLevel}` : ''}<div class="h">${p.hint}</div></div>`).join('<div style="height:6px"></div>')
-      : '<span class="st">Значимых паттернов нет. Ждём.</span>';
+      ? now.map((p) => `<div><b class="${dcls(p)}">${arrow(p)} ${pn(p.key)}</b> <span title="${T.strengthTip}">${stars(p)}</span>` +
+          `${p.atLevel ? T.atLevel(p.atLevel) : ''}<div class="h">${ph(p.key)}</div></div>`).join('<div style="height:6px"></div>')
+      : `<span class="st">${T.noNow}</span>`;
 
     const items = [...vis].sort((a, b) => b.i - a.i).slice(0, 15).map((p) => {
       const ago = res.lastIdx - p.i;
-      return `<div title="${p.hint}"><span class="${dcls(p)}">${arrow(p)} ${p.name}</span> ${stars(p)} — ${ago === 0 ? 'сейчас' : ago + ' св. назад'} ${res3(p)}</div>`;
+      return `<div title="${ph(p.key)}"><span class="${dcls(p)}">${arrow(p)} ${pn(p.key)}</span> ${stars(p)} — ${ago === 0 ? T.agoNow : T.ago(ago)} ${res3(p)}</div>`;
     });
-    $('[data-out=list]').innerHTML = items.length ? items.join('') : '<div class="st">Паттерны не найдены</div>';
+    $('[data-out=list]').innerHTML = items.length ? items.join('') : `<div class="st">${T.noPatterns}</div>`;
 
     const keys = new Set(vis.map((p) => p.key));
     const st = res.stats.filter((s) => keys.has(s.key)).map((s) => {
       const pct = Math.round((s.win / s.n) * 100);
       const c = s.n < 5 ? 'st' : pct >= 60 ? 'ok' : pct <= 40 ? 'bad' : 'nt';
-      return `<div><span class="${s.dir > 0 ? 'up' : 'dn'}">${s.dir > 0 ? '▲' : '▼'} ${s.name}</span><span class="${c}">${s.win}/${s.n} · ${pct}%</span></div>`;
+      return `<div><span class="${s.dir > 0 ? 'up' : 'dn'}">${s.dir > 0 ? '▲' : '▼'} ${pn(s.key)}</span><span class="${c}">${s.win}/${s.n} · ${pct}%</span></div>`;
     });
     $('[data-out=stats]').innerHTML = st.length
-      ? st.join('') + '<div class="disc" style="display:block">Как часто следующая свеча закрывалась в сторону паттерна. Меньше 5 случаев (серым) — выборка слишком мала. Прошлое на этом графике не гарантирует будущего.</div>'
-      : '<div class="st">Недостаточно данных</div>';
+      ? st.join('') + `<div class="disc" style="display:block">${T.statsNote}</div>`
+      : `<div class="st">${T.noData}</div>`;
   }
 
   function sessionHTML() {
     const ss = session.stats;
-    if (!ss) return '<span class="st">Нет данных</span>';
+    if (!ss) return `<span class="st">${T.noDataShort}</span>`;
     const pct = (x) => Math.round(x * 100) + '%';
     const rng = (ci) => `(${pct(ci[0])}–${pct(ci[1])})`;
     const lines = [];
     const v = verdict(ss);
-    if (!v) lines.push(`<b class="wait">Прогрев: ${ss.n}/${WARMUP} свечей</b>`);
-    else if (v.edge) lines.push(`<b class="${v.dir > 0 ? 'up' : 'dn'}">${v.dir > 0 ? '▲ Следующая чаще росла' : '▼ Следующая чаще падала'}</b> — ${v.src}<div class="h">Даже с поправкой на маленькую выборку это выше порога безубыточности ${(ss.breakeven * 100).toFixed(1)}%.</div>`);
-    else if (!v.src) lines.push(`<b class="nt">Мало похожих случаев — пропуск</b><div class="h">В сессии пока меньше ${MIN_N} таких же ситуаций, оценивать не по чему.</div>`);
-    else lines.push(`<b class="nt">Как монетка — пропуск</b><div class="h">${v.src}: следующая росла в ${Math.round(v.pUp * 100)}% из ${v.n} случаев. Реальная доля может быть от ${Math.round(v.ci[0] * 100)}% до ${Math.round(v.ci[1] * 100)}% — это не даёт уверенно пройти порог ${(ss.breakeven * 100).toFixed(1)}%.</div>`);
+    const be = (ss.breakeven * 100).toFixed(1);
+    if (!v) lines.push(`<b class="wait">${T.sWarmup(ss.n, WARMUP)}</b>`);
+    else if (v.edge) lines.push(`<b class="${v.dir > 0 ? 'up' : 'dn'}">${T.sEdge(v.dir > 0)}</b> — ${v.src}<div class="h">${T.sEdgeNote(be)}</div>`);
+    else if (!v.src) lines.push(`<b class="nt">${T.sFew}</b><div class="h">${T.sFewNote(MIN_N)}</div>`);
+    else lines.push(`<b class="nt">${T.sCoin}</b><div class="h">${T.sCoinNote(v.src, Math.round(v.pUp * 100), v.n, Math.round(v.ci[0] * 100), Math.round(v.ci[1] * 100), be)}</div>`);
 
     if (ss.run) {
       const c = ss.run.col > 0 ? '<span class="up">▲</span>' : '<span class="dn">▼</span>';
       const sameP = ss.run.n ? ss.run.same / ss.run.n : 0;
-      lines.push(`После серии ${ss.run.lenLabel}${c} следующая была того же цвета: ${ss.run.same} из ${ss.run.n}` +
-        (ss.run.n ? ` · ${pct(sameP)}` : '') + (ss.run.n < MIN_N ? ' <span class="st">(мало)</span>' : ''));
+      lines.push(T.sRun(ss.run.lenLabel, c, ss.run.same, ss.run.n) +
+        (ss.run.n ? ` · ${pct(sameP)}` : '') + (ss.run.n < MIN_N ? ` <span class="st">${T.few}</span>` : ''));
     }
     ss.patterns.forEach((p) => {
-      lines.push(`<span class="${p.dir > 0 ? 'up' : 'dn'}">${p.name}</span>: срабатывал ${p.win} из ${p.n}` +
-        (p.n ? ` · ${pct(p.p)} ${rng(p.ci)}` : '') + (p.n < MIN_N ? ' <span class="st">(мало)</span>' : ''));
+      lines.push(T.sPattern(`<span class="${p.dir > 0 ? 'up' : 'dn'}">${pn(p.key)}</span>`, p.win, p.n) +
+        (p.n ? ` · ${pct(p.p)} ${rng(p.ci)}` : '') + (p.n < MIN_N ? ` <span class="st">${T.few}</span>` : ''));
     });
-    if (ss.base) lines.push(`<span class="st">Всего в сессии: растущих ${pct(ss.base.p)} из ${ss.base.n} · порог при выплате ${state.payout}%: ${(ss.breakeven * 100).toFixed(1)}%</span>`);
-    const sync = session.misses ? `<span class="warn">синхронизация потеряна (${session.misses}/3)</span>` : '<span class="ok">● запись идёт</span>';
-    lines.push(`<span class="st">В памяти: ${ss.n} свечей (с экрана ${session.seeded} + новых ${session.live}) · ${sync}</span>`);
+    if (ss.base) lines.push(`<span class="st">${T.sBase(pct(ss.base.p), ss.base.n, state.payout, be)}</span>`);
+    const sync = session.misses ? `<span class="warn">${T.sSyncLost(session.misses)}</span>` : `<span class="ok">${T.sSyncOk}</span>`;
+    lines.push(`<span class="st">${T.sMemory(ss.n, session.seeded, session.live, sync)}</span>`);
     return lines.join('<div style="height:4px"></div>');
   }
 
@@ -459,7 +467,7 @@
   // ---------- Выбор области и пипетка ----------
   function selectRegion() {
     if (state.auto) toggleAuto(false);
-    hint.textContent = 'Обведите область свечей (без шкал цены/времени). Esc — отмена';
+    hint.textContent = T.regionHint;
     layer.style.display = 'block';
     panel.style.display = 'none';
     let start = null;
@@ -481,7 +489,7 @@
       const x = Math.min(start.x, e.clientX), y = Math.min(start.y, e.clientY);
       const w = Math.abs(e.clientX - start.x), h = Math.abs(e.clientY - start.y);
       done();
-      if (w < 40 || h < 40) { setStatus('Область слишком маленькая.'); return; }
+      if (w < 40 || h < 40) { setStatus(T.regionSmall); return; }
       state.region = { x, y, w, h };
       state.result = null;
       session = newSession();
@@ -493,12 +501,12 @@
   async function pickColor(which) {
     if (state.auto) toggleAuto(false);
     let shot;
-    try { shot = await captureScreen(true); } catch (e) { setStatus('Ошибка захвата: ' + e.message); return; }
+    try { shot = await captureScreen(true); } catch (e) { setStatus(T.captureError(e.message)); return; }
     const c = document.createElement('canvas');
     c.width = shot.img.naturalWidth; c.height = shot.img.naturalHeight;
     const cx = c.getContext('2d', { willReadFrequently: true });
     cx.drawImage(shot.img, 0, 0);
-    hint.textContent = `Кликните по телу ${which === 'bull' ? 'растущей' : 'падающей'} свечи. Esc — отмена`;
+    hint.textContent = T.pickHint(which === 'bull');
     layer.style.display = 'block'; layer.style.background = 'transparent';
     const done = () => {
       layer.style.display = 'none'; layer.style.background = '';
@@ -517,6 +525,15 @@
     };
   }
 
+  // ---------- Язык ----------
+  function applyLang() {
+    T = I.dict[lang];
+    shadow.querySelectorAll('[data-t]').forEach((el) => { el.textContent = T.ui[el.dataset.t]; });
+    shadow.querySelectorAll('[data-tt]').forEach((el) => { el.title = T.ui[el.dataset.tt]; });
+    syncUI();
+    if (state.result) { render(); report(); } else setStatus(T.ui.selectFirst);
+  }
+
   // ---------- UI ----------
   function syncUI() {
     const rgb = (c) => c ? `rgb(${c[0]},${c[1]},${c[2]})` : 'transparent';
@@ -529,7 +546,9 @@
     $('[data-c=lastForming]').checked = state.lastForming;
     const ab = $('[data-a=auto]');
     ab.classList.toggle('on', state.auto);
-    ab.textContent = state.auto ? 'Авто ■' : 'Авто ▶';
+    ab.textContent = state.auto ? T.autoOn : T.autoOff;
+    $('[data-a=lang]').textContent = lang === 'ru' ? 'EN' : 'RU';
+    $('[data-a=lang]').title = lang === 'ru' ? 'Switch to English' : 'Переключить на русский';
   }
 
   panel.addEventListener('click', (e) => {
@@ -537,6 +556,7 @@
     if (!a) return;
     switch (a.dataset.a) {
       case 'close': api.toggle(); break;
+      case 'lang': lang = lang === 'ru' ? 'en' : 'ru'; I.save(lang); applyLang(); break;
       case 'region': selectRegion(); break;
       case 'scan': scan(); break;
       case 'auto': toggleAuto(); break;
@@ -588,5 +608,5 @@
   };
   window.__candleScanner = api;
 
-  load().then(() => { syncUI(); render(); if (state.region) scan(); });
+  Promise.all([load(), I.load().then((l) => { lang = l; })]).then(() => { applyLang(); render(); if (state.region) scan(); });
 })();

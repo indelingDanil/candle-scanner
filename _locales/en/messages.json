@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "Candle Scanner"
+  },
+  "extDesc": {
+    "message": "Detects candlestick patterns, support/resistance levels and trend lines on any web chart. Not trading signals."
+  }
+}

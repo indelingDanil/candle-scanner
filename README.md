@@ -1,24 +1,145 @@
-# Candle Scanner — распознавание свечных паттернов, уровней и трендовых линий прямо на графике в браузере
+# Candle Scanner — candlestick pattern recognition, support/resistance levels and trend lines right on your browser chart
 
-**Бесплатное расширение для Chrome, Edge, Яндекс Браузера, Brave и Opera.** Оно само находит на свечном графике свечные паттерны, уровни поддержки и сопротивления и трендовые линии и рисует их поверх графика на любом сайте: у брокера, на TradingView, на криптобирже и т.д.
+**Free Chrome extension (also Edge, Brave, Opera, Yandex Browser) that automatically finds candlestick patterns, support and resistance levels and trend lines on any web chart: your broker, TradingView, a crypto exchange and more.**
 
-**Free Chrome extension for automatic candlestick pattern recognition, support and resistance levels and trend lines on any web chart.**
+**Бесплатное расширение для браузера: само находит свечные паттерны, уровни поддержки и сопротивления и трендовые линии на любом графике.** [Читать на русском ↓](#русский)
 
-![Candle Scanner: свечные паттерны, уровни поддержки и сопротивления и трендовые линии на графике EUR/USD / candlestick patterns, support and resistance levels and trend lines on a chart](docs/screenshot.png)
+![Candle Scanner: candlestick patterns, support and resistance levels and trend lines on an EUR/USD chart](docs/screenshot.png)
 
-**Содержание / Contents**
-- [Русский](#русский)
+**Contents / Содержание**
 - [English](#english)
+- [Русский](#русский)
+
+---
+
+## English
+
+### What it is
+
+Candle Scanner takes the routine out of chart analysis. You no longer need to draw trend lines by hand, hunt for support and resistance, or squint at every candle to spot a hammer or an engulfing pattern. The extension takes a screenshot of the visible tab, recognizes the candles and annotates the chart right away.
+
+It works on **any website with a candlestick chart**, because it reads the image, not the data. No broker API, keys or login are needed. Forex, crypto, stocks, OTC pairs and binary options platforms all work.
+
+The interface is available in **English and Russian**. It follows your browser language, and you can switch it with the **RU / EN** button in the panel header.
+
+> ⚠️ **This is not a trading signals tool.** It does not tell you when to buy or sell. It only saves you from drawing lines and searching for the textbook candlestick shapes described in classic technical analysis literature. All decisions are yours. See the [Disclaimer](#disclaimer).
+
+### What it detects
+
+**Candlestick patterns (21):**
+
+| Bullish reversal | Bearish reversal | Neutral and momentum |
+|---|---|---|
+| Hammer | Hanging Man | Doji |
+| Inverted Hammer | Shooting Star | Dragonfly Doji |
+| Bullish Engulfing | Bearish Engulfing | Gravestone Doji |
+| Bullish Harami | Bearish Harami | Bullish Marubozu |
+| Piercing Line | Dark Cloud Cover | Bearish Marubozu |
+| Tweezer Bottom | Tweezer Top | |
+| Morning Star | Evening Star | |
+| Three White Soldiers | Three Black Crows | |
+
+Patterns follow the classic rules (Steve Nison, Thomas Bulkowski) and take the preceding trend into account. For example, a hammer and a hanging man look the same, but the first appears after a decline and the second after a rally.
+
+**Chart markup:**
+- **Support (S) and resistance (R) levels** with touch counts.
+- **Trend lines**: through lows in an uptrend, through highs in a downtrend. A possible breakout is marked.
+- **Overall trend**: up, down or sideways over the last 30 candles.
+- **Pattern strength** ★☆☆–★★★: the classic significance of the shape plus a bonus when it forms at a level.
+
+**Statistics instead of guessing:**
+- ✓ / ✗ for every pattern: whether the next candle closed in its direction.
+- Per-pattern stats over the visible history, for example "Bullish Engulfing: 7 of 12".
+- **Session mode.** The extension remembers every candle since it started and shows what happened in similar situations before, for example "after 2 green candles in a row the next one was green 18 of 31 times". Every number comes with its sample size and an honest confidence interval.
+- A badge in the chart corner: "Coin flip · skip", "Too few similar cases", or a colored one when the session history shows a statistically visible edge. The threshold accounts for your payout percentage.
+
+**Convenience:**
+- No flicker, and the markup does not confuse the recognition: the extension removes everything it drew itself from the screenshot.
+- Broker trade badges and order lines in the same color as the candles do not break recognition.
+- Candle colors are detected automatically, and you can set them with an eyedropper for unusual themes.
+- Settings are saved per website.
+- Everything runs locally in your browser. No data is sent anywhere, no accounts, no tracking.
+
+### Installation
+
+The extension is not in the Chrome Web Store yet, so you install it from this repository. It takes 1–2 minutes.
+
+1. Download the archive: green **Code → Download ZIP** button at the top of the page (or the **Releases** section if a newer version is there).
+2. Unzip it into a permanent folder, for example `Documents\candle-scanner`. Do not delete or move this folder after installation: the browser loads the extension from it.
+3. Open the extensions page:
+   - Chrome: `chrome://extensions`
+   - Edge: `edge://extensions`
+   - Brave: `brave://extensions`
+   - Opera: `opera://extensions`
+4. Turn on **Developer mode** (usually a switch in the top right corner).
+5. Click **Load unpacked** and select the folder that contains `manifest.json`.
+6. Pin the Candle Scanner icon to the toolbar (puzzle icon → pin).
+
+**To update:** download the new version, replace the files in the same folder and click ↻ on the extension card at `chrome://extensions`.
+
+### How to use
+
+1. Open a page with a chart, click the extension icon and choose **Open / hide panel**.
+2. Click **Region** and drag a frame around the candles. Leave out the price and time scales, the current price label and the toolbars.
+3. Click **Scan** for a one-time analysis, or **Auto** to refresh the markup every second.
+4. If the candle colors were detected wrong, use **Pick ▲ / Pick ▼** and click the body of a rising and a falling candle.
+5. The **Debug** checkbox shows how the extension "sees" each candle.
+
+**Tips:**
+- Candles at least 5 px wide work best. If bodies and wicks merge, zoom the chart in.
+- Remove indicators drawn in the same colors as the candles.
+- Filled candles are supported. Hollow (outline-only) candles are not supported yet.
+- The session restarts when you change the pair or timeframe and when you reload the page.
+
+### Disclaimer
+
+> **Candle Scanner is a visual chart-markup tool. It is not a trading signals service and not investment advice.**
+>
+> - The extension automates drawing trend lines and levels and searching for textbook candlestick shapes described in publicly available technical analysis literature. A detected pattern means the candles match a description. It is not a forecast.
+> - The statistics shown describe only the past of the visible chart. They do not guarantee future results and can be pure chance on small samples.
+> - Trading financial markets, especially with leverage and binary options, carries a high risk of losing all invested funds. Binary options are banned for retail clients in a number of countries: check the laws where you live.
+> - Image-based recognition can be wrong: unusual chart themes, indicators on top of candles, zoom level.
+> - The author is not responsible for any financial decisions or their consequences. Use the extension at your own risk and try it on a demo account first.
+> - Using third-party extensions may violate your broker's terms of service. Check this yourself.
+
+### Support the project
+
+The extension is free and open source. If it saved you time and you want to support its development, donations are welcome:
+
+👉 Donate USDT (TRC20): `TB3Qn2guzVdj93kUi43KG8gQY6mruGZbNG`
+
+👉 Donate BTC (BTC): `16Bs15Mpu2HAYyVjgiLdwQC1yzLpbf2qyv`
+
+👉 Donate ETH (ERC20): `0x3704ecc83ea8b6a852d63dc82c0badcd761d8e6f`
+
+Double-check the network: USDT on TRC20 only, ETH on ERC20 only.
+
+If you like the extension, please give the repository a ⭐: it helps others find it. Report bugs and ideas in [Issues](../../issues), ideally with a screenshot taken with Debug enabled.
+
+### For developers
+
+- `manifest.json` — Manifest V3; `_locales/` — extension name and description in English and Russian
+- `background.js` — takes the tab screenshot (`chrome.tabs.captureVisibleTab`)
+- `analyzer.js` — pixel-based candle recognition, patterns, levels, trends, session statistics. No dependencies.
+- `i18n.js` — all interface texts in English and Russian
+- `content.js` — panel, region selection, eyedropper, chart markup
+- `popup.html`, `popup.js` — launch button
+- `test-chart.html` — a live test chart to try the extension without a broker
+- `tests/analyzer.test.js` — core tests: `node tests/analyzer.test.js`
 
 ---
 
 ## Русский
+
+![Candle Scanner: свечные паттерны, уровни поддержки и сопротивления и трендовые линии на графике EUR/USD](docs/screenshot-ru.png)
 
 ### Что это
 
 Candle Scanner избавляет от рутины технического анализа. Вам больше не нужно вручную проводить трендовые линии, искать уровни и вглядываться в каждую свечу, чтобы узнать «молот» или «поглощение». Расширение делает снимок видимой части вкладки, распознаёт свечи и сразу размечает график.
 
 Расширение работает на **любом сайте со свечным графиком**, потому что читает картинку, а не данные. Ему не нужен доступ к API брокера, ключи или логин. Это могут быть графики форекс, криптовалют, акций, OTC-пары и платформы с бинарными опционами.
+
+Интерфейс есть на **русском и английском**. Язык выбирается по языку браузера, переключить его можно кнопкой **EN / RU** в заголовке панели.
 
 > ⚠️ **Это не инструмент торговых сигналов.** Расширение не говорит, когда покупать или продавать. Оно только снимает с вас рисование линий и поиск шаблонных фигур, которые описаны в классической литературе по свечному анализу. Решения принимаете вы. Подробнее в разделе [Дисклеймер](#дисклеймер).
 
@@ -115,124 +236,8 @@ Candle Scanner избавляет от рутины технического а�
 
 Если расширение понравилось, поставьте ⭐ репозиторию: так его проще найти другим. Ошибки и идеи пишите в [Issues](../../issues), желательно со скриншотом и включённой «Отладкой».
 
-### Для разработчиков
-
-- `manifest.json` — Manifest V3
-- `background.js` — делает снимок вкладки (`chrome.tabs.captureVisibleTab`)
-- `analyzer.js` — распознавание свечей по пикселям, паттерны, уровни, тренды, статистика сессии. Без зависимостей.
-- `content.js` — панель, выбор области, пипетка, отрисовка разметки
-- `popup.html`, `popup.js` — кнопка запуска
-- `test-chart.html` — «живой» тестовый график для проверки без брокера
-- `tests/analyzer.test.js` — тесты ядра: `node tests/analyzer.test.js`
-
 ---
 
-## English
-
-### What it is
-
-Candle Scanner takes the routine out of chart analysis. You no longer need to draw trend lines by hand, hunt for support and resistance, or squint at every candle to spot a hammer or an engulfing pattern. The extension takes a screenshot of the visible tab, recognizes the candles and annotates the chart right away.
-
-It works on **any website with a candlestick chart**, because it reads the image, not the data. No broker API, keys or login are needed. Forex, crypto, stocks, OTC pairs and binary options platforms all work.
-
-> ⚠️ **This is not a trading signals tool.** It does not tell you when to buy or sell. It only saves you from drawing lines and searching for the textbook candlestick shapes described in classic technical analysis literature. All decisions are yours. See the [Disclaimer](#disclaimer).
-
-### What it detects
-
-**Candlestick patterns (21):**
-
-| Bullish reversal | Bearish reversal | Neutral and momentum |
-|---|---|---|
-| Hammer | Hanging Man | Doji |
-| Inverted Hammer | Shooting Star | Dragonfly Doji |
-| Bullish Engulfing | Bearish Engulfing | Gravestone Doji |
-| Bullish Harami | Bearish Harami | Bullish Marubozu |
-| Piercing Line | Dark Cloud Cover | Bearish Marubozu |
-| Tweezer Bottom | Tweezer Top | |
-| Morning Star | Evening Star | |
-| Three White Soldiers | Three Black Crows | |
-
-Patterns follow the classic rules (Steve Nison, Thomas Bulkowski) and take the preceding trend into account. For example, a hammer and a hanging man look the same, but the first appears after a decline and the second after a rally.
-
-**Chart markup:**
-- **Support (S) and resistance (R) levels** with touch counts.
-- **Trend lines**: through lows in an uptrend, through highs in a downtrend. A possible breakout is marked.
-- **Overall trend**: up, down or sideways over the last 30 candles.
-- **Pattern strength** ★☆☆–★★★: the classic significance of the shape plus a bonus when it forms at a level.
-
-**Statistics instead of guessing:**
-- ✓ / ✗ for every pattern: whether the next candle closed in its direction.
-- Per-pattern stats over the visible history, for example "Bullish Engulfing: 7 of 12".
-- **Session mode.** The extension remembers every candle since it started and shows what happened in similar situations before, for example "after 2 green candles in a row the next one was green 18 of 31 times". Every number comes with its sample size and an honest confidence interval.
-- A badge in the chart corner: "Coin flip · skip", "Too few similar cases", or a colored one when the session history shows a statistically visible edge. The threshold accounts for your payout percentage.
-
-**Convenience:**
-- No flicker, and the markup does not confuse the recognition: the extension removes everything it drew itself from the screenshot.
-- Broker trade badges and order lines in the same color as the candles do not break recognition.
-- Candle colors are detected automatically, and you can set them with an eyedropper for unusual themes.
-- Settings are saved per website.
-- Everything runs locally in your browser. No data is sent anywhere, no accounts, no tracking.
-
-### Installation
-
-The extension is not in the Chrome Web Store yet, so you install it from this repository. It takes 1–2 minutes.
-
-1. Download the archive: green **Code → Download ZIP** button at the top of the page (or the **Releases** section if a newer version is there).
-2. Unzip it into a permanent folder, for example `Documents\candle-scanner`. Do not delete or move this folder after installation: the browser loads the extension from it.
-3. Open the extensions page:
-   - Chrome: `chrome://extensions`
-   - Edge: `edge://extensions`
-   - Brave: `brave://extensions`
-   - Opera: `opera://extensions`
-4. Turn on **Developer mode** (usually a switch in the top right corner).
-5. Click **Load unpacked** and select the folder that contains `manifest.json`.
-6. Pin the Candle Scanner icon to the toolbar (puzzle icon → pin).
-
-**To update:** download the new version, replace the files in the same folder and click ↻ on the extension card at `chrome://extensions`.
-
-### How to use
-
-1. Open a page with a chart, click the extension icon and choose **Open / hide panel**.
-2. Click **Область** (Region) and drag a frame around the candles. Leave out the price and time scales, the current price label and the toolbars.
-3. Click **Сканировать** (Scan) for a one-time analysis, or **Авто** (Auto) to refresh the markup every second.
-4. If the candle colors were detected wrong, use **Пипетка ▲ / ▼** (eyedropper) and click the body of a rising and a falling candle.
-5. The **Отладка** (Debug) checkbox shows how the extension "sees" each candle.
-
-The panel interface is currently in Russian. An English UI is planned.
-
-**Tips:**
-- Candles at least 5 px wide work best. If bodies and wicks merge, zoom the chart in.
-- Remove indicators drawn in the same colors as the candles.
-- Filled candles are supported. Hollow (outline-only) candles are not supported yet.
-- The session restarts when you change the pair or timeframe and when you reload the page.
-
-### Disclaimer
-
-> **Candle Scanner is a visual chart-markup tool. It is not a trading signals service and not investment advice.**
->
-> - The extension automates drawing trend lines and levels and searching for textbook candlestick shapes described in publicly available technical analysis literature. A detected pattern means the candles match a description. It is not a forecast.
-> - The statistics shown describe only the past of the visible chart. They do not guarantee future results and can be pure chance on small samples.
-> - Trading financial markets, especially with leverage and binary options, carries a high risk of losing all invested funds. Binary options are banned for retail clients in a number of countries: check the laws where you live.
-> - Image-based recognition can be wrong: unusual chart themes, indicators on top of candles, zoom level.
-> - The author is not responsible for any financial decisions or their consequences. Use the extension at your own risk and try it on a demo account first.
-> - Using third-party extensions may violate your broker's terms of service. Check this yourself.
-
-### Support the project
-
-The extension is free and open source. If it saved you time and you want to support its development, donations are welcome:
-
-👉 Donate USDT (TRC20): `TB3Qn2guzVdj93kUi43KG8gQY6mruGZbNG`
-
-👉 Donate BTC (BTC): `16Bs15Mpu2HAYyVjgiLdwQC1yzLpbf2qyv`
-
-👉 Donate ETH (ERC20): `0x3704ecc83ea8b6a852d63dc82c0badcd761d8e6f`
-
-Double-check the network: USDT on TRC20 only, ETH on ERC20 only.
-
-If you like the extension, please give the repository a ⭐: it helps others find it. Report bugs and ideas in [Issues](../../issues), ideally with a screenshot taken with Debug enabled.
-
----
-
-<sub>Скриншот сделан на демо-графике со случайными данными. Screenshot taken on a demo chart with random data.</sub>
+<sub>Screenshots taken on a demo chart with random data. Скриншоты сделаны на демо-графике со случайными данными.</sub>
 
 <sub>Keywords: candlestick pattern recognition, chrome extension for trading charts, automatic trend lines, auto support and resistance, price action, technical analysis tool, candlestick patterns detector, forex, crypto, binary options, Pocket Option, TradingView, распознавание свечных паттернов, свечной анализ, расширение для браузера трейдинг, автоматические трендовые линии, уровни поддержки и сопротивления, технический анализ, price action, японские свечи.</sub>

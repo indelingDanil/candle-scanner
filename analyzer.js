@@ -190,10 +190,10 @@
     let mw = median(candles.map((c) => c.w));
     const before = candles.length;
     candles = candles.filter((c) => c.w <= mw * 2.2 + 1 && c.w >= Math.max(1, mw * 0.45) && (c.bot - c.top) >= 1);
-    if (before - candles.length > 0) warnings.push(`Отброшено ${before - candles.length} объектов, не похожих на свечи`);
+    if (before - candles.length > 0) warnings.push({ code: 'dropped', n: before - candles.length });
     mw = median(candles.map((c) => c.w));
-    if (candles.length && mw < 3) warnings.push('Свечи слишком узкие (<3px): тела и тени не различить, увеличьте масштаб графика');
-    if (candles.length < 10) warnings.push('Найдено мало свечей — проверьте область и цвета');
+    if (candles.length && mw < 3) warnings.push({ code: 'narrow' });
+    if (candles.length < 10) warnings.push({ code: 'few' });
 
     // Переводим в OHLC (в пикселях, вверх = больше)
     for (const c of candles) {
@@ -223,7 +223,7 @@
           }
           out.push(candles[i]);
         }
-        if (hidden) warnings.push(`Свечей закрыто чем-то на графике: ${hidden} (плашка сделки?) — они не участвуют в паттернах`);
+        if (hidden) warnings.push({ code: 'hidden', n: hidden });
         candles = out;
       }
     }
@@ -232,31 +232,19 @@
 
   // ---------- Анализ ----------
 
-  // weight: базовая значимость по классике (1 — слабый/частый, 3 — сильный/редкий)
-  const HINT_UP = 'Возможный разворот вверх. Классическое подтверждение — следующая свеча закрывается выше максимума паттерна.';
-  const HINT_DN = 'Возможный разворот вниз. Классическое подтверждение — следующая свеча закрывается ниже минимума паттерна.';
+  // dir: 1 — бычий, -1 — медвежий, 0 — нейтральный. weight: значимость по классике (1 — слабый/частый, 3 — сильный/редкий).
+  // Названия и пояснения — в i18n.js.
   const P = {
-    doji:            { name: 'Доджи', short: 'Доджи', dir: 0, weight: 1, hint: 'Нерешительность: силы покупателей и продавцов равны. Сам по себе направления не даёт.' },
-    dragonfly:       { name: 'Доджи «стрекоза»', short: 'Стрекоза', dir: 1, weight: 1, hint: 'Цену продавили вниз, но вернули к открытию. ' + HINT_UP },
-    gravestone:      { name: 'Доджи «надгробие»', short: 'Надгробие', dir: -1, weight: 1, hint: 'Цену подняли, но вернули к открытию. ' + HINT_DN },
-    hammer:          { name: 'Молот', short: 'Молот', dir: 1, weight: 2, hint: 'Длинная нижняя тень после падения: продавцов выкупили. ' + HINT_UP },
-    hangingMan:      { name: 'Повешенный', short: 'Повешен.', dir: -1, weight: 2, hint: 'Форма молота, но после роста: признак слабости покупателей. ' + HINT_DN },
-    invHammer:       { name: 'Перевёрнутый молот', short: 'Перев.молот', dir: 1, weight: 2, hint: 'Длинная верхняя тень после падения: первая попытка покупателей. ' + HINT_UP },
-    shootingStar:    { name: 'Падающая звезда', short: 'Пад.звезда', dir: -1, weight: 2, hint: 'Длинная верхняя тень после роста: рост отвергнут. ' + HINT_DN },
-    marubozuBull:    { name: 'Бычье марубозу', short: 'Марубозу', dir: 1, weight: 1, hint: 'Сильная свеча без теней: импульс покупателей. Это продолжение, а не разворот.' },
-    marubozuBear:    { name: 'Медвежье марубозу', short: 'Марубозу', dir: -1, weight: 1, hint: 'Сильная свеча без теней: импульс продавцов. Это продолжение, а не разворот.' },
-    engulfBull:      { name: 'Бычье поглощение', short: 'Поглощ.', dir: 1, weight: 2, hint: 'Тело растущей свечи перекрыло тело предыдущей падающей. ' + HINT_UP },
-    engulfBear:      { name: 'Медвежье поглощение', short: 'Поглощ.', dir: -1, weight: 2, hint: 'Тело падающей свечи перекрыло тело предыдущей растущей. ' + HINT_DN },
-    haramiBull:      { name: 'Бычий харами', short: 'Харами', dir: 1, weight: 1, hint: 'Маленькая свеча внутри тела большой падающей: падение замедляется. ' + HINT_UP },
-    haramiBear:      { name: 'Медвежий харами', short: 'Харами', dir: -1, weight: 1, hint: 'Маленькая свеча внутри тела большой растущей: рост замедляется. ' + HINT_DN },
-    piercing:        { name: 'Просвет в облаках', short: 'Просвет', dir: 1, weight: 2, hint: 'Растущая свеча закрылась выше середины предыдущей падающей. ' + HINT_UP },
-    darkCloud:       { name: 'Завеса из тёмных облаков', short: 'Т.облака', dir: -1, weight: 2, hint: 'Падающая свеча закрылась ниже середины предыдущей растущей. ' + HINT_DN },
-    tweezerBottom:   { name: 'Пинцет (дно)', short: 'Пинцет', dir: 1, weight: 1, hint: 'Два одинаковых минимума подряд: уровень удержали. ' + HINT_UP },
-    tweezerTop:      { name: 'Пинцет (вершина)', short: 'Пинцет', dir: -1, weight: 1, hint: 'Два одинаковых максимума подряд: уровень не пробили. ' + HINT_DN },
-    morningStar:     { name: 'Утренняя звезда', short: 'Утр.звезда', dir: 1, weight: 3, hint: 'Большая падающая, маленькая свеча, большая растущая. ' + HINT_UP },
-    eveningStar:     { name: 'Вечерняя звезда', short: 'Веч.звезда', dir: -1, weight: 3, hint: 'Большая растущая, маленькая свеча, большая падающая. ' + HINT_DN },
-    threeSoldiers:   { name: 'Три белых солдата', short: '3 солдата', dir: 1, weight: 2, hint: 'Три уверенные растущие свечи подряд: сильное давление покупателей.' },
-    threeCrows:      { name: 'Три чёрные вороны', short: '3 вороны', dir: -1, weight: 2, hint: 'Три уверенные падающие свечи подряд: сильное давление продавцов.' },
+    doji: { dir: 0, weight: 1 }, dragonfly: { dir: 1, weight: 1 }, gravestone: { dir: -1, weight: 1 },
+    hammer: { dir: 1, weight: 2 }, hangingMan: { dir: -1, weight: 2 },
+    invHammer: { dir: 1, weight: 2 }, shootingStar: { dir: -1, weight: 2 },
+    marubozuBull: { dir: 1, weight: 1 }, marubozuBear: { dir: -1, weight: 1 },
+    engulfBull: { dir: 1, weight: 2 }, engulfBear: { dir: -1, weight: 2 },
+    haramiBull: { dir: 1, weight: 1 }, haramiBear: { dir: -1, weight: 1 },
+    piercing: { dir: 1, weight: 2 }, darkCloud: { dir: -1, weight: 2 },
+    tweezerBottom: { dir: 1, weight: 1 }, tweezerTop: { dir: -1, weight: 1 },
+    morningStar: { dir: 1, weight: 3 }, eveningStar: { dir: -1, weight: 3 },
+    threeSoldiers: { dir: 1, weight: 2 }, threeCrows: { dir: -1, weight: 2 },
   };
 
   const rng = (k) => k.h - k.l;
@@ -409,7 +397,7 @@
 
   function overallTrend(cs, lastIdx, aR) {
     const n = Math.min(30, lastIdx + 1);
-    if (n < 5) return { dir: 0, label: 'недостаточно данных' };
+    if (n < 5) return { dir: 0, bars: n };
     let sx = 0, sy = 0, sxy = 0, sxx = 0;
     for (let t = 0; t < n; t++) {
       const y = mid(cs[lastIdx - n + 1 + t]);
@@ -418,7 +406,7 @@
     const slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
     const norm = slope / Math.max(1, aR);
     const dir = norm > 0.15 ? 1 : norm < -0.15 ? -1 : 0;
-    return { dir, norm, label: dir > 0 ? 'восходящий' : dir < 0 ? 'нисходящий' : 'боковик', bars: n };
+    return { dir, norm, bars: n };
   }
 
   /**
@@ -428,7 +416,7 @@
   function analyze(candles, opts) {
     const cs = candles;
     const lastIdx = cs.length - 1 - (opts && opts.lastForming ? 1 : 0);
-    if (lastIdx < 5) return { patterns: [], levels: [], trendlines: [], trend: { dir: 0, label: 'недостаточно данных' }, lastIdx };
+    if (lastIdx < 5) return { patterns: [], levels: [], trendlines: [], trend: { dir: 0, bars: 0 }, lastIdx, stats: [] };
     const aR = avgOver(cs, cs.length, cs.length, rng);
     const tol = Math.max(2, 0.3 * aR);
     const k = cs.length >= 40 ? 3 : 2;
@@ -463,7 +451,7 @@
     const stats = {};
     for (const p of patterns) {
       if (p.outcome !== 'win' && p.outcome !== 'loss') continue;
-      const s = stats[p.key] || (stats[p.key] = { key: p.key, name: p.name, dir: p.dir, n: 0, win: 0 });
+      const s = stats[p.key] || (stats[p.key] = { key: p.key, dir: p.dir, n: 0, win: 0 });
       s.n++; if (p.outcome === 'win') s.win++;
     }
 
@@ -556,7 +544,7 @@
         if (!seq[i].keys.some((k) => k.key === pk.key) || seq[i + 1].t === 0) continue;
         n++; if (seq[i + 1].t === pk.dir) win++;
       }
-      out.patterns.push({ key: pk.key, dir: pk.dir, name: P[pk.key].name, n, win, p: n ? win / n : 0.5, ci: wilson(win, n) });
+      out.patterns.push({ key: pk.key, dir: pk.dir, n, win, p: n ? win / n : 0.5, ci: wilson(win, n) });
     }
     return out;
   }
