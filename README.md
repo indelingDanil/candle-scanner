@@ -4,6 +4,8 @@
 
 **Free Chrome extension for automatic candlestick pattern recognition, support and resistance levels and trend lines on any web chart.**
 
+![Candle Scanner: свечные паттерны, уровни поддержки и сопротивления и трендовые линии на графике EUR/USD / candlestick patterns, support and resistance levels and trend lines on a chart](docs/screenshot.png)
+
 **Содержание / Contents**
 - [Русский](#русский)
 - [English](#english)
@@ -230,5 +232,7 @@ Double-check the network: USDT on TRC20 only, ETH on ERC20 only.
 If you like the extension, please give the repository a ⭐: it helps others find it. Report bugs and ideas in [Issues](../../issues), ideally with a screenshot taken with Debug enabled.
 
 ---
+
+<sub>Скриншот сделан на демо-графике со случайными данными. Screenshot taken on a demo chart with random data.</sub>
 
 <sub>Keywords: candlestick pattern recognition, chrome extension for trading charts, automatic trend lines, auto support and resistance, price action, technical analysis tool, candlestick patterns detector, forex, crypto, binary options, Pocket Option, TradingView, распознавание свечных паттернов, свечной анализ, расширение для браузера трейдинг, автоматические трендовые линии, уровни поддержки и сопротивления, технический анализ, price action, японские свечи.</sub>
