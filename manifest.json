@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Candle Scanner (MVP)",
+  "version": "0.2.0",
+  "description": "Читает видимый свечной график со скриншота вкладки, размечает свечные паттерны, уровни и трендовые линии. Не является торговыми сигналами.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Candle Scanner",
+    "default_popup": "popup.html"
+  }
+}

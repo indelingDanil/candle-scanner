@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Тестовый график</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #131722; color: #b2b5be; font: 13px system-ui, sans-serif; }
+  header { padding: 10px 16px; }
+  canvas { display: block; margin: 0 16px; }
+</style>
+</head>
+<body>
+<header>Тестовый график EUR/USD (случайное блуждание, новая свеча каждые 2 с). Откройте панель Candle Scanner и выделите область свечей без правой шкалы.</header>
+<canvas id="c"></canvas>
+<script>
+  const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  const W = Math.min(1200, innerWidth - 32), H = Math.min(560, innerHeight - 70), AX = 70;
+  const dpr = devicePixelRatio || 1;
+  cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+  const CW = 7, STEP = 11, N = Math.floor((W - AX - 10) / STEP);
+  let bars = [], p = 1.0850;
+  function next() {
+    const o = p, vol = 0.0006 * (0.5 + Math.random());
+    const drift = Math.sin(bars.length / 25) * 0.00015;
+    const c = o + (Math.random() - 0.5) * vol + drift;
+    const h = Math.max(o, c) + Math.random() * vol * 0.6;
+    const l = Math.min(o, c) - Math.random() * vol * 0.6;
+    p = c; return { o, h, l, c };
+  }
+  for (let i = 0; i < N; i++) bars.push(next());
+  function draw() {
+    ctx.fillStyle = '#131722'; ctx.fillRect(0, 0, W, H);
+    const vis = bars.slice(-N);
+    const hi = Math.max(...vis.map(b => b.h)), lo = Math.min(...vis.map(b => b.l));
+    const pad = (hi - lo) * 0.08, top = hi + pad, bot = lo - pad;
+    const y = v => (top - v) / (top - bot) * (H - 30) + 10;
+    ctx.strokeStyle = '#1e222d'; ctx.lineWidth = 1;
+    for (let i = 0; i < 8; i++) { const yy = Math.round(10 + i * (H - 30) / 7) + .5; ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(W - AX, yy); ctx.stroke(); }
+    ctx.fillStyle = '#787b86'; ctx.font = '11px system-ui';
+    for (let i = 0; i < 8; i++) { const v = top - i * (top - bot) / 7; ctx.fillText(v.toFixed(5), W - AX + 6, 14 + i * (H - 30) / 7); }
+    vis.forEach((b, i) => {
+      const x = 5 + i * STEP, col = b.c >= b.o ? '#26a69a' : '#ef5350';
+      ctx.fillStyle = col;
+      ctx.fillRect(x + Math.floor(CW / 2), Math.round(y(b.h)), 1, Math.max(1, Math.round(y(b.l) - y(b.h))));
+      const yt = Math.round(y(Math.max(b.o, b.c))), yb = Math.round(y(Math.min(b.o, b.c)));
+      ctx.fillRect(x, yt, CW, Math.max(1, yb - yt));
+    });
+    const last = vis[vis.length - 1];
+    ctx.fillStyle = last.c >= last.o ? '#26a69a' : '#ef5350';
+    ctx.fillRect(W - AX, y(last.c) - 8, AX, 16);
+    ctx.fillStyle = '#fff'; ctx.fillText(last.c.toFixed(5), W - AX + 6, y(last.c) + 4);
+  }
+  // текущая свеча "живёт", раз в 2 с закрывается
+  let t = 0;
+  setInterval(() => {
+    const b = bars[bars.length - 1];
+    if (++t % 8 === 0) { bars.push({ o: b.c, h: b.c, l: b.c, c: b.c }); p = b.c; }
+    else { const c = b.c + (Math.random() - 0.5) * 0.0002; b.c = c; b.h = Math.max(b.h, c); b.l = Math.min(b.l, c); p = c; }
+    draw();
+  }, 250);
+  draw();
+</script>
+</body>
+</html>
